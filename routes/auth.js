@@ -1,7 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const generateToken = require("../utils/jwtToken");
 const router = express.Router();
 
 //Register User
@@ -18,26 +18,24 @@ router.post("/register", async (req, res) => {
   }
 });
 
-//Logic User
+//Login User
 router.post("/login", async (req, res) => {
-  const { email, password } = res.body;
+  const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      res.status(400).json({ message: "User Not Found" });
+      return res.status(400).json({ message: "User Not Found" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      res.status(400).json({ message: "Invalid Credentials Please Check" });
-
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRETE, {
-        expiresIn: "1h",
-      });
-      res
-        .cookie("token", token, { httpOnly: true })
-        .json({ message: "Login Successful", token });
+      return res.status(400).json({ message: "Invalid Credentials Please Check" });
     }
+
+    const token = generateToken(user._id);
+    res
+      .cookie("token", token, { httpOnly: true })
+      .json({ message: "Login Successful", token });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
