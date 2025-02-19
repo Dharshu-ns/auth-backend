@@ -12,7 +12,12 @@ router.post("/register", async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(password, salt);
     const jwtSecret = crypto.randomBytes(32).toString("hex");
-    const newUser = new User({ name, email, password: hashPassword, jwtSecret });
+    const newUser = new User({
+      name,
+      email,
+      password: hashPassword,
+      jwtSecret,
+    });
     await newUser.save();
     res.json({ message: "User registered successfully" });
   } catch (err) {
@@ -31,10 +36,14 @@ router.post("/login", async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid Credentials Please Check" });
+      return res
+        .status(400)
+        .json({ message: "Invalid Credentials Please Check" });
     }
 
-    const token = jwt.sign({ id: user._id }, user.jwtSecret, { expiresIn: "1h" });
+    const token = jwt.sign({ id: user._id }, user.jwtSecret, {
+      expiresIn: "1h",
+    });
     res
       .cookie("token", token, { httpOnly: true })
       .json({ message: "Login Successful", token });
@@ -45,7 +54,9 @@ router.post("/login", async (req, res) => {
 
 // Logout User
 router.get("/logout", (req, res) => {
-  res.clearCookie('token').json({ message: "Session Expired Please Login Again" });
+  res
+    .clearCookie("token")
+    .json({ message: "Session Expired Please Login Again" });
 });
 
 module.exports = router;
