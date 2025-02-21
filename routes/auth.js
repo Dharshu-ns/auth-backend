@@ -4,13 +4,12 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const User = require("../models/User");
 const router = express.Router();
-
+require("dotenv").config();
 // Register User
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
   try {
-    const salt = await bcrypt.genSalt(10);
-    const hashPassword = await bcrypt.hash(password, salt);
+    const hashPassword = await bcrypt.hash(password, 10);
     const newUser = new User({
       name,
       email,
@@ -30,13 +29,13 @@ router.post("/login", async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: "User Not Found" });
+      return res.status(404).json({ message: "User Not Found" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res
-        .status(400)
+        .status(401)
         .json({ message: "Invalid Credentials Please Check" });
     }
 
