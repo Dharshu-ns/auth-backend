@@ -11,12 +11,11 @@ router.post("/register", async (req, res) => {
   try {
     const salt = await bcrypt.genSalt(10);
     const hashPassword = await bcrypt.hash(password, salt);
-    const jwtSecret = crypto.randomBytes(32).toString("hex");
     const newUser = new User({
       name,
       email,
       password: hashPassword,
-      jwtSecret,
+      
     });
     await newUser.save();
     res.json({ message: "User registered successfully" });
@@ -41,7 +40,7 @@ router.post("/login", async (req, res) => {
         .json({ message: "Invalid Credentials Please Check" });
     }
 
-    const token = jwt.sign({ id: user._id }, user.jwtSecret, {
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
     res
